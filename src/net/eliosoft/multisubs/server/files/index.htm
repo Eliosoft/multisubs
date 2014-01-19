@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<HTML xmlns="http://www.w3.org/1999/xhtml"><HEAD><META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<TITLE>LSDI</TITLE>
+<STYLE type="text/css">
+<!--
+html {
+    height: 100%;
+}
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+#page-table {
+    height: 100%;
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+#page-td {
+    height: 100%;
+    padding: 0;
+    vertical-align: middle;
+}
+div{
+	text-align: center;
+	align: center;
+}
+
+-->
+</STYLE>
+
+<SCRIPT type="text/javascript">
+<!--
+var send_xhr_object = null;
+var params_xhr_object = null;
+var dmxTable_xhr_object = null;
+var cuesList_xhr_object = null;
+var isRequestActive = false;
+var context="/data/";
+var elements = new Array();
+var cues = "";
+
+
+var init = function()
+{
+	//alert(window.location.search);
+	elements["responseMessage"] = document.getElementById("responseMessage");
+	
+	params_xhr_object = createXHRObject();
+	
+	if(!params_xhr_object){
+		alert("pas d'objet params");
+		return;
+	}
+	
+	updateParams();
+}
+
+var createXHRObject = function()
+{
+	var tempXHR = null;
+	if(window.XMLHttpRequest){ //firefox...
+		tempXHR = new XMLHttpRequest();
+	}
+	else if(window.ActiveXObject){
+		tempXHR = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	else return null;
+	
+	return tempXHR;
+}
+
+var updateParams = function(){
+	makeRequest(params_xhr_object,'get','',context+'params'+window.location.search,setNewParams);
+}
+
+var makeRequest = function(xhr_object,method,query,url,responseHandler)
+{
+	xhr_object.open(method,url,true);
+	
+	xhr_object.onreadystatechange = function()
+	{
+		if(xhr_object.readyState == 4){
+			isRequestActive = false;
+			responseHandler(xhr_object);
+		}
+	}
+	
+	xhr_object.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	xhr_object.send(query);
+	isRequestActive = true;
+}
+
+var setNewParams = function(xhr_object){
+	elements["responseMessage"].firstChild.nodeValue = xhr_object.responseText;
+	setTimeout(updateParams,100);
+}
+
+-->
+</SCRIPT>
+</HEAD><BODY onload="init();"  BGCOLOR="black" TEXT="white">
+<table id="page-table"><tr><td id="page-td">
+<div id="responseMessage" style="font-size: 40pt;vertical-align: middle"  >
+</div>
+</td></tr></table>
+
+</BODY></HTML>
