@@ -87,8 +87,8 @@ public class CSVTable extends JFrame {
 		JScrollPane scroll = new JScrollPane(table);
 
 		JPanel buttonPanel = new JPanel();
-		closeButton = new JButton("Fermer");
-		loadButton = new JButton("Charger un fichier...");
+		closeButton = new JButton("Close");
+		loadButton = new JButton("Load File...");
 		buttonPanel.add(loadButton);
 		buttonPanel.add(closeButton);
 		
@@ -178,12 +178,12 @@ public class CSVTable extends JFrame {
 	}
 	
 	public static void main(String args[]) {
-		CSVTable frame = new CSVTable("Gestion des sous-titres");
+		CSVTable frame = new CSVTable("MultiSubs");
 		frame.setVisible(true);
 		try {
 			httpServerManager.startHttp();
 		} catch (IOException e1) {
-			JOptionPane.showMessageDialog(frame, e1.getMessage(),"ERREUR",JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(frame, e1.getMessage(),"ERROR",JOptionPane.ERROR_MESSAGE);
 			System.exit(0);
 		}
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
