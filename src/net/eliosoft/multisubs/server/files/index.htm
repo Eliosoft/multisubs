@@ -23,9 +23,15 @@ body {
     padding: 0;
     vertical-align: middle;
 }
-div{
+table.div{
 	text-align: center;
 	align: center;
+}
+
+#responseMessage{
+    font-family: "Courier New";
+    font-weight: bold;
+    font-size: 40pt;
 }
 
 -->
@@ -90,16 +96,16 @@ var makeRequest = function(xhr_object,method,query,url,responseHandler)
 }
 
 var setNewParams = function(xhr_object){
-	elements["responseMessage"].firstChild.nodeValue = xhr_object.responseText;
+	elements["responseMessage"].innerHTML = xhr_object.responseText;
 	setTimeout(updateParams,100);
 }
 
 -->
 </SCRIPT>
 </HEAD><BODY onload="init();"  BGCOLOR="black" TEXT="white">
-<table id="page-table"><tr><td id="page-td">
-<div id="responseMessage" style="font-size: 40pt;vertical-align: middle"  >
+<!--<table id="page-table"><tr><td id="page-td">-->
+<div id="responseMessage">
 </div>
-</td></tr></table>
+<!--</td></tr></table>-->
 
 </BODY></HTML>

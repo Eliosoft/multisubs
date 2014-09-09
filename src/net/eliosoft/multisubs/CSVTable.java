@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -35,7 +36,8 @@ public class CSVTable extends JFrame {
 	private int titlesCount = 0;
 	private JButton closeButton, loadButton;
 	private static HttpServerManager httpServerManager = HttpServerManager.getInstance();
-	private static String[] webTexts = {}; 
+	private static String[] webTexts = {};
+	private SwingWorker<Void, Void> timer = null;
 
 	/**
 	 * Takes data from a CSV file and places it into a table for display.
@@ -52,18 +54,52 @@ public class CSVTable extends JFrame {
 			@Override
 			public void valueChanged(ListSelectionEvent lse) {
 				if(model != null && !lse.getValueIsAdjusting()){
-					ListSelectionModel lsm = (ListSelectionModel)lse.getSource();
+					if(timer != null){
+						timer.cancel(true);
+						timer = null;
+					}
+					final ListSelectionModel lsm = (ListSelectionModel)lse.getSource();
 					
-					webTexts = new String[titlesCount];
-					for(int i=0 ; i<titlesCount ; i++){
+					if(lsm.getMinSelectionIndex() == -1){
+						webTexts = new String[titlesCount - 1];
+						return;
+					}
+					
+					final int time = Integer.parseInt((String)model.getValueAt(lsm.getMinSelectionIndex(),0));
+					
+					
+					webTexts = new String[titlesCount - 1];
+					for(int i=1 ; i<titlesCount ; i++){
 						String webValue = (String) model.getValueAt(lsm.getMinSelectionIndex(),i);
 						if(webValue != null){
-							webTexts[i] = webValue;
+							webTexts[i - 1] = webValue;
 						} else {
-							webTexts[i] = "";
+							webTexts[i - 1] = "";
 						}
 					}
+					
+					if(time > 0){
+						timer = new SwingWorker<Void, Void>(){
 
+							@Override
+							protected Void doInBackground() throws Exception {
+								int selectedRow = lsm.getMinSelectionIndex();
+								try {
+									for(int i = time; i > 0 ; i--){
+										table.setValueAt("<html><body><font color='red'><b>"+i+"</b></font></body></html>", selectedRow, 0);
+										Thread.sleep(100);
+									}
+									table.setValueAt(time+"", selectedRow, 0);
+									lsm.setSelectionInterval(selectedRow+1, selectedRow+1);
+								} catch (InterruptedException e) {
+									table.setValueAt(time+"", selectedRow, 0);
+								}
+								return null;
+							}
+							
+						};
+						timer.execute();
+					}
 				}
 			}
 		});
@@ -101,6 +137,10 @@ public class CSVTable extends JFrame {
 			        int returnVal = fc.showOpenDialog(table);
 
 			        if (returnVal == JFileChooser.APPROVE_OPTION) {
+			        	if(timer != null){
+							timer.cancel(true);
+							timer = null;
+						}
 			            File file = fc.getSelectedFile();
 			            
 						try {
@@ -141,17 +181,13 @@ public class CSVTable extends JFrame {
 	 *            connection or URL.
 	 */
 	void insertData(InputStream is) {
-		Scanner scan = new Scanner(is);
+		Scanner scan = new Scanner(is,"UTF-8");
 		model = null;
 
 		String[] array;
 		while (scan.hasNextLine()) {
 			String line = scan.nextLine();
-			if (line.indexOf(";") > -1){
-				array = line.split(";");
-			} else {
-				array = line.split("\t");
-			}
+			array = line.split("\t");
 			String[] data = new String[array.length];
 			for (int i = 0; i < array.length; i++)
 				data[i] = array[i];
