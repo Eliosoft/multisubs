@@ -2,12 +2,16 @@ package net.eliosoft.multisubs;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.JButton;
@@ -18,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
@@ -30,6 +35,7 @@ import net.eliosoft.multisubs.server.HttpServerManager;
 public class CSVTable extends JFrame {
 	private static final int MAX_MESSAGE_SIZE = 246;
 	private JTable table;
+	private JScrollPane scroll;
 	private JPanel radioPanel = new JPanel();
 	private JFileChooser fc;
 	private DefaultTableModel model;
@@ -38,7 +44,8 @@ public class CSVTable extends JFrame {
 	private static HttpServerManager httpServerManager = HttpServerManager.getInstance();
 	private static String[] webTexts = {};
 	private SwingWorker<Void, Void> timer = null;
-
+	private static List<WebTextListener> webTextListeners = new ArrayList<WebTextListener>();
+	
 	/**
 	 * Takes data from a CSV file and places it into a table for display.
 	 */
@@ -68,15 +75,26 @@ public class CSVTable extends JFrame {
 					final int time = Integer.parseInt((String)model.getValueAt(lsm.getMinSelectionIndex(),0));
 					
 					
-					webTexts = new String[titlesCount - 1];
-					for(int i=1 ; i<titlesCount ; i++){
-						String webValue = (String) model.getValueAt(lsm.getMinSelectionIndex(),i);
-						if(webValue != null){
-							webTexts[i - 1] = webValue;
-						} else {
-							webTexts[i - 1] = "";
+					synchronized (this) {
+						webTexts = new String[titlesCount - 1];
+						for(int i=1 ; i<titlesCount ; i++){
+							String webValue = (String) model.getValueAt(lsm.getMinSelectionIndex(),i);
+							if(webValue != null){
+								webTexts[i - 1] = webValue;
+							} else {
+								webTexts[i - 1] = "";
+							}
+						}
+					
+						Iterator<WebTextListener> webTextListenerIterator = webTextListeners.iterator();
+						while(webTextListenerIterator.hasNext()){
+							WebTextListener listener = webTextListenerIterator.next();
+							if(listener == null || listener.webTextChanged(webTexts)){
+								webTextListenerIterator.remove();
+							}
 						}
 					}
+					
 					
 					if(time > 0){
 						timer = new SwingWorker<Void, Void>(){
@@ -100,6 +118,13 @@ public class CSVTable extends JFrame {
 						};
 						timer.execute();
 					}
+					
+					//move the selected line to the third line in the viewport
+					JViewport vp = scroll.getViewport();
+			        Rectangle r = table.getCellRect(lsm.getMinSelectionIndex()-3, 0, true);  
+			        int vph = vp.getExtentSize().height;  
+			        r.y += vph;  
+			        table.scrollRectToVisible(r);
 				}
 			}
 		});
@@ -120,7 +145,7 @@ public class CSVTable extends JFrame {
 			}
 			
 		});
-		JScrollPane scroll = new JScrollPane(table);
+		scroll = new JScrollPane(table);
 
 		JPanel buttonPanel = new JPanel();
 		closeButton = new JButton("Close");
@@ -223,5 +248,15 @@ public class CSVTable extends JFrame {
 			System.exit(0);
 		}
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	public static void addWebTextListener(WebTextListener listener){
+		webTextListeners.add(listener);
+	}
+	
+	public static void removeWebTextListener(WebTextListener listener){
+		do{
+			webTextListeners.remove(listener);
+		}while(webTextListeners.contains(listener));
 	}
 }

@@ -20,7 +20,7 @@ package net.eliosoft.multisubs.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.logging.Logger;
+import java.util.concurrent.Executors;
 
 import com.sun.net.httpserver.HttpServer;
 
@@ -94,6 +94,7 @@ public class HttpServerManager {
 				0);
 		this.httpServer.createContext("/", this.resourceHttpHandler);
 		this.httpServer.createContext("/data/params", this.paramsHttpHandler);
+		this.httpServer.setExecutor(Executors.newCachedThreadPool());
 	}
 
 }
