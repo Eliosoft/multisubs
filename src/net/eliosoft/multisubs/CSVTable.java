@@ -2,6 +2,7 @@ package net.eliosoft.multisubs;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -18,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
@@ -30,6 +32,7 @@ import net.eliosoft.multisubs.server.HttpServerManager;
 public class CSVTable extends JFrame {
 	private static final int MAX_MESSAGE_SIZE = 246;
 	private JTable table;
+	private JScrollPane scroll;
 	private JPanel radioPanel = new JPanel();
 	private JFileChooser fc;
 	private DefaultTableModel model;
@@ -100,6 +103,12 @@ public class CSVTable extends JFrame {
 						};
 						timer.execute();
 					}
+					//move the selected line to the third line in the viewport
+					JViewport vp = scroll.getViewport();
+					Rectangle r = table.getCellRect(lsm.getMinSelectionIndex()-3, 0, true);  
+					int vph = vp.getExtentSize().height;  
+					r.y += vph;  
+					table.scrollRectToVisible(r);
 				}
 			}
 		});
@@ -120,7 +129,7 @@ public class CSVTable extends JFrame {
 			}
 			
 		});
-		JScrollPane scroll = new JScrollPane(table);
+		scroll = new JScrollPane(table);
 
 		JPanel buttonPanel = new JPanel();
 		closeButton = new JButton("Close");
